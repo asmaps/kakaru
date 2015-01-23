@@ -6,6 +6,8 @@ import tweepy
 from tweepy.error import TweepError
 # import random
 import json
+import time
+
 # from replies import replies_dict, nothing_found
 
 API_KEY = os.getenv('API_KEY', '')
@@ -39,16 +41,18 @@ class StdOutListener(tweepy.streaming.StreamListener):
     This is a basic listener that just prints received tweets to stdout.
     """
 
-    last_own_tweet = None
+    last_own_tweet = 0
     questions = []
 
     def on_data(self, data):
         data = json.loads(data)
         username = data.get('user').get('screen_name')
         text = data.get('text')
+        import pprint
         if not data.get('in_reply_to_screen_name') and\
                 not data.get('in_reply_to_status_id') and\
-                not data.get('in_reply_to_user_id'):
+                not data.get('in_reply_to_user_id') and\
+                self.last_own_tweet + 5 < time.time():
             if text[-1:] == '?' and text.lower().startswith('why'):
                 self.questions.append({
                     'username': username,
@@ -61,9 +65,23 @@ class StdOutListener(tweepy.streaming.StreamListener):
                 print("Answering: " + qdata['text'])
                 print(answer)
                 print('####################')
-                api.update_status(
-                    status=u'@{user} {answer}'.format(user=qdata['username'], answer=answer),
-                    in_reply_to_status_id=qdata['id'])
+                status = u'@{user} {answer}'.format(user=qdata['username'], answer=answer)
+                if len(status) <= 140:
+                    api.update_status(
+                        status=status,
+                        in_reply_to_status_id=qdata['id'])
+                    self.last_own_tweet = time.time()
+        if str(data.get('in_reply_to_screen_name')).lower() == 'kakarubot':
+            answer = "I'm a bot automatically answering to all questions on twitter. Sorry for confusion! {t}".\
+                format(t=str(time.time()))
+            print('####################')
+            print('Got answer from @{user}: {answer}'.format(user=username, answer=text))
+            print('Replying: ' + answer)
+            print('####################')
+            api.update_status(
+                status=u'@{user} {answer}'.format(user=username, answer=answer),
+                in_reply_to_status_id=data.get('id'))
+
         return True
 
     def on_error(self, status):
@@ -78,7 +96,7 @@ stream = tweepy.Stream(auth, l)
 
 while True:
     try:
-        stream.filter(track=["why", "Because"],
+        stream.filter(track=["why", "Because", "@KakaruBot"],
                       languages=['de', 'en'],
                       follow=[])
     except TweepError as e:
