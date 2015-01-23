@@ -1,0 +1,12 @@
+data:
+  image: aexea/aexea-base
+  volumes:
+    - /home/uid1000
+web:
+  build: .
+  environment:
+      PYTHONUNBUFFERED: 0
+  volumes:
+   - .:/opt/code
+  volumes_from:
+   - data
