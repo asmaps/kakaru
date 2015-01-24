@@ -15,6 +15,7 @@ API_KEY = os.getenv('API_KEY', '')
 API_SECRET = os.getenv('API_SECRET', '')
 CLIENT_TOKEN = os.getenv('CLIENT_TOKEN', '')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET', '')
+TWEET_RATE = int(os.getenv('TWEET_RATE', '60'))
 
 try:
     from credentials import API_KEY
@@ -50,7 +51,7 @@ class StdOutListener(tweepy.streaming.StreamListener):
     """
 
     last_own_tweet = 0
-    min_tweet_secs = 60
+    min_tweet_secs = TWEET_RATE
     questions = []
 
     def on_data(self, data):
