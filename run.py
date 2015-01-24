@@ -98,6 +98,7 @@ class StdOutListener(tweepy.streaming.StreamListener):
             # api.update_status(
             #     status=u'@{user} {answer}'.format(user=username, answer=answer),
             #     in_reply_to_status_id=data.get('id'))
+            api.create_favorite(data.get('id'))
 
         return True
 
