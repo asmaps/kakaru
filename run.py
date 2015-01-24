@@ -50,7 +50,7 @@ class StdOutListener(tweepy.streaming.StreamListener):
     """
 
     last_own_tweet = 0
-    min_tweet_secs = 20
+    min_tweet_secs = 60
     questions = []
 
     def on_data(self, data):
