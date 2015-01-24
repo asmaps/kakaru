@@ -7,6 +7,7 @@ from tweepy.error import TweepError
 # import random
 import json
 import time
+from bad_words import BAD_WORDS
 
 # from replies import replies_dict, nothing_found
 
@@ -36,6 +37,13 @@ except ImportError:
     pass
 
 
+def has_bad_words(text):
+    for word in BAD_WORDS:
+        if word in text:
+            return True
+    return False
+
+
 class StdOutListener(tweepy.streaming.StreamListener):
     """ A listener handles tweets are the received from the stream.
     This is a basic listener that just prints received tweets to stdout.
@@ -53,7 +61,8 @@ class StdOutListener(tweepy.streaming.StreamListener):
         if not data.get('in_reply_to_screen_name') and\
                 not data.get('in_reply_to_status_id') and\
                 not data.get('in_reply_to_user_id') and\
-                self.last_own_tweet + self.min_tweet_secs < time.time():
+                self.last_own_tweet + self.min_tweet_secs < time.time() and\
+                not has_bad_words(text):
             if text[-1:] == '?' and text.lower().startswith('why'):
                 self.questions.append({
                     'username': username,
